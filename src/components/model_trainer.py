@@ -1,10 +1,10 @@
 import os
 import sys
 from dataclasses import dataclass
-from catboost import CatBoostClassifier
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, AdaBoostClassifier
+from catboost import CatBoostRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier, AdaBoostRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.svm import SVC
+from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
@@ -33,17 +33,55 @@ class ModelTrainer:
             models = {
                 "RandomForestRegressor": RandomForestRegressor(),
                 "GradientBoostingClassifier": GradientBoostingClassifier(),
-                "AdaBoostClassifier": AdaBoostClassifier(),
+                "AdaBoostRegressor": AdaBoostRegressor(),
                 "LogisticRegression": LogisticRegression(),
-                "SVC": SVC(),
+                "SVR": SVR(),
                 "KNeighborsRegressor": KNeighborsRegressor(),
                 "DecisionTreeRegressor": DecisionTreeRegressor(),
                 "XGBRegressor": XGBRegressor(),
                 "LinearRegression": LinearRegression(),
-                "CatBoostClassifier": CatBoostClassifier()
+                "CatBoostRegressor": CatBoostRegressor()
             }
             
-            model_report:dict = evaluate_model(X_train = X_train, y_train = y_train, X_test = X_test, y_test = y_test, models = models)
+            params = {
+                "DecisionTreeRegressor": {
+                    'criterion': ["squared_error", "friedman_mse", "absolute_error", "poisson"],
+                },
+                "RandomForestRegressor": {
+                    'n_estimators': [8, 16, 32, 64, 128, 256],
+                },
+                "GradientBoostingClassifier": {
+                    'learning_rate': [0.01, 0.1, 0.05, 0.001],
+                    'subsample': [0.6, 0.7, 0.75, 0.8, 0.85, 0.9],
+                    'n_estimators': [8, 16, 32, 64, 128, 256]
+                },
+                "LinearRegression": {},
+                "KNeighborsRegressor": {
+                    'n_neighbors': [5, 7, 9, 11]
+                },
+                "XGBRegressor": {
+                    'learning_rate': [0.01, 0.1, 0.05, 0.001],
+                    'n_estimators': [8, 16, 32, 64, 128, 256]
+                },
+                "CatBoostRegressor": {
+                    'learning_rate': [0.01, 0.1, 0.05],
+                    'depth': [6, 8, 10],
+                    'iterations': [30, 50, 100]
+                },
+                "AdaBoostRegressor": {
+                    'learning_rate': [0.01, 0.1, 0.05, 0.001],
+                    'n_estimators': [8, 16, 32, 64, 128, 256]
+                },
+                "LogisticRegression": {
+                    'C': [0.01, 0.1, 1, 10, 100, 1000]
+                },
+                "SVR": {
+                    'C': [0.1, 1, 10, 100],
+                    'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+                }                
+            }
+            
+            model_report:dict = evaluate_model(X_train = X_train, y_train = y_train, X_test = X_test, y_test = y_test, models = models, params = params)
             
             # Get the best model score from the report
             best_model_score = max(sorted(model_report.values()))
