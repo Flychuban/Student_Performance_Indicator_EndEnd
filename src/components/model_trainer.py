@@ -8,18 +8,18 @@ from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
-from sklearn.pipeline import Pipeline
+
 
 from sklearn.metrics import r2_score
 from src.exception import CustomException
 from src.logger import logging
-from src.utils import save_object, evaluate_model
+from src.utils import save_object, evaluate_models
 
 import pickle
 
 @dataclass
 class ModelTrainerConfig:
-    trained_model_file_path = os.path.join("artifacts", "trained_model.pkl")
+    trained_model_file_path = os.path.join("artifacts", "model.pkl")
 
 class ModelTrainer:
     def __init__(self):
@@ -43,7 +43,7 @@ class ModelTrainer:
                 "CatBoostRegressor": CatBoostRegressor()
             }
             
-            params = {
+            param = {
                 "DecisionTreeRegressor": {
                     'criterion': ["squared_error", "friedman_mse", "absolute_error", "poisson"],
                 },
@@ -81,7 +81,7 @@ class ModelTrainer:
                 }                
             }
             
-            model_report:dict = evaluate_model(X_train = X_train, y_train = y_train, X_test = X_test, y_test = y_test, models = models, params = params)
+            model_report:dict = evaluate_models(X_train = X_train, y_train = y_train, X_test = X_test, y_test = y_test, models = models, param = param)
             
             # Get the best model score from the report
             best_model_score = max(sorted(model_report.values()))
@@ -92,7 +92,7 @@ class ModelTrainer:
             best_model = models[best_model_name]
             
             if best_model_score < 0.6:
-                raise CustomException("Best model score is less than 0.6", sys)
+                raise CustomException("Best model score is less than s0.6", sys)
             
             logging.info(f"Best model name: {best_model_name} found with score: {best_model_score}")
             
